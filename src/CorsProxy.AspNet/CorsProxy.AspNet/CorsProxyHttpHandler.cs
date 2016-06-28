@@ -78,7 +78,7 @@ namespace CorsProxy.AspNet
                 context.Response.StatusDescription = response.StatusDescription;
 
                 var stream = response.GetResponseStream();
-                if (stream != null && response.ContentLength > 0)
+                if (stream != null)
                 {
                     stream.CopyTo(context.Response.OutputStream);
                     stream.Flush();
