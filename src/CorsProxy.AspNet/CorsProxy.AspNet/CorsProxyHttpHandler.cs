@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Net;
 using System.Text;
 using System.Web;
@@ -56,6 +57,7 @@ namespace CorsProxy.AspNet
             try
             {
                 var request = WebRequest.CreateHttp(url);
+                request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
                 context.Request.CopyHeadersTo(request);
                 request.Method = context.Request.HttpMethod;
                 request.ContentType = context.Request.ContentType;
@@ -70,9 +72,9 @@ namespace CorsProxy.AspNet
                 if (!context.Request.HttpMethod.Equals("GET", StringComparison.OrdinalIgnoreCase))
                     context.Request.InputStream.CopyTo(request.GetRequestStream());
 
+
                 //context.Request.UrlReferrer = request.Referer;
                 var response = (HttpWebResponse) request.GetResponse();
-                response.CopyHeadersTo(context.Response);
                 context.Response.ContentType = response.ContentType;
                 context.Response.StatusCode = (int) response.StatusCode;
                 context.Response.StatusDescription = response.StatusDescription;
@@ -83,7 +85,6 @@ namespace CorsProxy.AspNet
                     stream.CopyTo(context.Response.OutputStream);
                     stream.Flush();
                 }
-                //context.Response.Close();
             }
             catch (WebException exception)
             {
@@ -106,7 +107,6 @@ namespace CorsProxy.AspNet
                 context.Response.StatusDescription = exception.Status.ToString();
                 var msg = Encoding.ASCII.GetBytes(exception.Message);
                 context.Response.OutputStream.Write(msg, 0, msg.Length);
-                context.Response.Close();
             }
             catch (Exception exception)
             {
@@ -115,7 +115,6 @@ namespace CorsProxy.AspNet
                 context.Response.AddHeader("X-CorsProxy-Failure", "true");
                 var msg = Encoding.ASCII.GetBytes(exception.Message);
                 context.Response.OutputStream.Write(msg, 0, msg.Length);
-                context.Response.Close();
             }
         }
 
